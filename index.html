@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="dark">
+<title>Environmental & Safety Monitoring System</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  background:#061426;
+  color:#eaf4ff;
+}
+
+button{font-family:inherit}
+
+/* ---------- header ---------- */
+.header{
+  min-height:78px;
+  background:#081a31;
+  border-bottom:1px solid #193552;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+  padding:15px 28px;
+}
+.logo{font-size:22px;font-weight:700}
+.subtitle{color:#7893af;font-size:12px;margin-top:5px}
+.headRight{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.connection{display:flex;align-items:center;gap:9px;font-size:13px}
+.dot{
+  width:11px;height:11px;border-radius:50%;
+  background:#8298ae;
+  transition:background .3s,box-shadow .3s;
+}
+.dot.ok{background:#24db91;box-shadow:0 0 12px #24db91}
+.dot.warn{background:#ffc04c;box-shadow:0 0 12px #ffc04c}
+.dot.bad{background:#ff4757;box-shadow:0 0 12px #ff4757}
+.userBox{display:flex;align-items:center;gap:10px;font-size:12px;color:#8ea7c0}
+.ghost{
+  background:transparent;color:#cfe3f7;
+  border:1px solid #2a4a6b;border-radius:8px;
+  padding:8px 14px;font-size:13px;cursor:pointer;min-height:36px;
+}
+.ghost:hover{background:#0d2743}
+:focus-visible{outline:2px solid #5aa9ff;outline-offset:2px}
+
+/* ---------- layout ---------- */
+.main{max-width:1450px;margin:auto;padding:22px}
+.main.stale .card .value,
+.main.stale .panel .big,
+.main.stale table td:last-child{opacity:.55}
+
+.systemBanner{
+  background:#062d2a;border:1px solid #0b6558;
+  border-radius:10px;padding:18px 22px;margin-bottom:18px;
+}
+.systemBanner.offline{background:#2a2410;border-color:#6b5a1c}
+.systemBanner.alarm{background:#35101a;border-color:#7a2433}
+.systemTitle{font-size:20px;font-weight:bold}
+.systemText{margin-top:6px;color:#7bd5bc;font-size:13px}
+.systemBanner.offline .systemText{color:#e0c978}
+.systemBanner.alarm .systemText{color:#ff9aa5}
+
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.card{
+  background:#0a1d35;border:1px solid #1a3858;
+  border-radius:10px;padding:18px;min-height:160px;
+}
+.icon{font-size:28px}
+.label{color:#8ea7c0;font-size:13px;margin-top:9px}
+.value{font-size:25px;font-weight:700;margin-top:6px}
+.status{
+  display:inline-block;margin-top:10px;padding:5px 11px;
+  border-radius:20px;background:#073d34;color:#36e39d;
+  font-size:10px;font-weight:bold;
+}
+.alert{color:#ff5968}
+.warning{color:#ffc04c}
+.statusAlert{background:#4b1018;color:#ff6876}
+.statusWarning{background:#493509;color:#ffc34d}
+
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}
+.panel{
+  background:#0a1d35;border:1px solid #193654;
+  border-radius:10px;padding:20px;
+}
+.panel h3{margin:0 0 15px 0;font-size:15px}
+.big{font-size:38px;font-weight:bold}
+.row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px 0;border-bottom:1px solid #17314e;gap:15px;
+}
+.row:last-child{border-bottom:0}
+.on{color:#31e39a;font-weight:bold}
+.off{color:#8298ae}
+.full{grid-column:1/-1}
+small{color:#7893af}
+
+table{width:100%;border-collapse:collapse}
+td{padding:10px;border-bottom:1px solid #17314e}
+td:first-child{color:#8fa8c1}
+
+.priority{margin-top:10px;padding:10px;border-radius:7px;background:#0d2743}
+.footer{text-align:center;color:#607993;padding:28px 10px;font-size:12px}
+
+/* ---------- remote control ---------- */
+.ctlGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.ctlBox{background:#0d2743;border-radius:8px;padding:16px}
+.ctlTitle{font-size:14px;font-weight:bold}
+.ctlSub{color:#7893af;font-size:12px;margin-top:3px}
+.ctlLine{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;min-height:40px}
+.ctlState{font-size:13px}
+
+.seg{display:flex;border:1px solid #2a4a6b;border-radius:8px;overflow:hidden}
+.seg button{
+  background:transparent;color:#9db6cf;border:0;
+  padding:9px 18px;font-size:13px;font-weight:bold;
+  cursor:pointer;min-height:40px;
+}
+.seg button+button{border-left:1px solid #2a4a6b}
+.seg button[aria-pressed="true"]{background:#0e5c4b;color:#eafff7}
+.seg button:disabled{opacity:.4;cursor:not-allowed}
+
+.sw{
+  width:60px;height:34px;border-radius:20px;
+  border:1px solid #2a4a6b;background:#081a31;
+  position:relative;cursor:pointer;padding:0;flex:none;
+  transition:background .2s,border-color .2s;
+}
+.sw .knob{
+  position:absolute;top:4px;left:4px;width:24px;height:24px;
+  border-radius:50%;background:#8298ae;transition:left .2s,background .2s;
+}
+.sw[aria-checked="true"]{background:#073d34;border-color:#31e39a}
+.sw[aria-checked="true"] .knob{left:30px;background:#31e39a}
+.sw:disabled{opacity:.35;cursor:not-allowed}
+
+.note{margin-top:14px;font-size:12px;color:#8ea7c0;line-height:1.5}
+.toast{
+  margin-top:10px;font-size:12px;min-height:18px;color:#7bd5bc;
+}
+.toast.err{color:#ff8b97}
+
+/* ---------- login ---------- */
+.overlay{
+  position:fixed;inset:0;z-index:10;
+  background:#061426;
+  display:flex;align-items:center;justify-content:center;padding:16px;
+}
+.overlay[hidden]{display:none}
+.loginCard{
+  width:100%;max-width:420px;
+  background:#0a1d35;border:1px solid #1a3858;border-radius:12px;padding:26px;
+}
+.loginCard h1{font-size:20px;margin:0 0 6px 0;line-height:1.3;text-wrap:balance}
+.loginCard p{margin:0 0 18px 0;color:#7893af;font-size:13px}
+.loginCard label{display:block;font-size:12px;color:#8ea7c0;margin:12px 0 6px}
+.loginCard input{
+  width:100%;padding:11px 12px;font-size:16px;
+  background:#061426;color:#eaf4ff;
+  border:1px solid #2a4a6b;border-radius:8px;
+}
+.primary{
+  width:100%;margin-top:18px;min-height:44px;
+  background:#0e8f6f;color:#fff;border:0;border-radius:8px;
+  font-size:15px;font-weight:bold;cursor:pointer;
+}
+.primary:disabled{opacity:.6;cursor:wait}
+.loginErr{margin-top:12px;min-height:18px;font-size:13px;color:#ff8b97}
+.checking .loginForm{display:none}
+.loginWait{display:none;color:#8ea7c0;font-size:14px;text-align:center}
+.checking .loginWait{display:block}
+.checking .loginHead{display:none}
+
+/* ---------- responsive ---------- */
+@media(max-width:1050px){
+  .cards{grid-template-columns:repeat(2,1fr)}
+  .grid{grid-template-columns:1fr}
+  .ctlGrid{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .header{padding:14px}
+  .main{padding:12px}
+  .cards{grid-template-columns:1fr}
+  .logo{font-size:16px}
+  .big{font-size:32px}
+}
+</style>
+</head>
+
+<body>
+
+<!-- ============================ LOGIN ============================ -->
+<div class="overlay checking" id="loginOverlay">
+  <div class="loginCard">
+    <div class="loginWait">Connecting…</div>
+    <div class="loginHead">
+      <h1>🌿 Environmental &amp; Safety Monitoring System</h1>
+      <p>Sign in to monitor and control the system</p>
+    </div>
+    <form class="loginForm" id="loginForm">
+      <label for="email">Email</label>
+      <input id="email" type="email" autocomplete="username" required>
+      <label for="password">Password</label>
+      <input id="password" type="password" autocomplete="current-password" required>
+      <button class="primary" id="loginBtn" type="submit">Sign in</button>
+      <div class="loginErr" id="loginErr" role="alert"></div>
+    </form>
+  </div>
+</div>
+
+<!-- ============================ HEADER ============================ -->
+<div class="header">
+  <div>
+    <div class="logo">🌿 Environmental & Safety Monitoring System</div>
+    <div class="subtitle">ESP8266 &nbsp;|&nbsp; Firebase Cloud &nbsp;|&nbsp; Monitor &amp; Control From Anywhere</div>
+  </div>
+
+  <div class="headRight">
+    <div class="connection" role="status">
+      <span class="dot" id="wifiDot"></span>
+      <span id="wifiText">Connecting…</span>
+    </div>
+    <div class="userBox">
+      <span id="userEmail"></span>
+      <button class="ghost" id="signOutBtn" type="button">Sign out</button>
+    </div>
+  </div>
+</div>
+
+<div class="main" id="main">
+
+<!-- ============================ SYSTEM STATUS ============================ -->
+<div class="systemBanner" id="banner">
+  <div class="systemTitle" id="systemTitle">Waiting for data…</div>
+  <div class="systemText" id="systemText">Connecting to the ESP8266 through Firebase.</div>
+</div>
+
+<!-- ============================ SENSOR CARDS ============================ -->
+<div class="cards">
+
+  <div class="card">
+    <div class="icon">🌡️</div>
+    <div class="label">Temperature</div>
+    <div class="value" id="temperature">--</div>
+    <div class="label">DHT-22</div>
+    <div class="status" id="tempStatus">NORMAL</div>
+  </div>
+
+  <div class="card">
+    <div class="icon">💧</div>
+    <div class="label">Humidity</div>
+    <div class="value" id="humidity">--</div>
+    <div class="label">DHT-22</div>
+    <div class="status">LIVE</div>
+  </div>
+
+  <div class="card">
+    <div class="icon">☁️</div>
+    <div class="label">MQ-2 Gas / Smoke</div>
+    <div class="value" id="mq2">--</div>
+    <div class="label">Threshold: 500</div>
+    <div class="status" id="mqStatus">SAFE</div>
+  </div>
+
+  <div class="card">
+    <div class="icon">🔥</div>
+    <div class="label">Flame Sensor</div>
+    <div class="value" id="flame">--</div>
+    <div class="status" id="flameStatus">SAFE</div>
+  </div>
+
+  <div class="card">
+    <div class="icon">🚨</div>
+    <div class="label">PIR Motion</div>
+    <div class="value" id="pir">--</div>
+    <div class="status" id="pirStatus">CLEAR</div>
+  </div>
+
+</div>
+
+<!-- ============================ PANELS ============================ -->
+<div class="grid">
+
+  <!-- ===== REMOTE RELAY CONTROL ===== -->
+  <div class="panel full">
+    <h3>🎛️ Remote Relay Control</h3>
+
+    <div class="ctlGrid">
+
+      <div class="ctlBox">
+        <div class="ctlTitle">Control Mode</div>
+        <div class="ctlSub" id="modeHint">AUTO: relays run by the safety logic.</div>
+        <div class="ctlLine">
+          <div class="seg" role="group" aria-label="Control mode">
+            <button type="button" id="modeAuto"   aria-pressed="true">AUTO</button>
+            <button type="button" id="modeManual" aria-pressed="false">MANUAL</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="ctlBox">
+        <div class="ctlTitle">Relay 1</div>
+        <div class="ctlSub">Flame Safety</div>
+        <div class="ctlLine">
+          <span class="ctlState off" id="r1state">OFF</span>
+          <button type="button" class="sw" id="sw1" role="switch" aria-checked="false" aria-label="Relay 1 manual switch"><span class="knob"></span></button>
+        </div>
+      </div>
+
+      <div class="ctlBox">
+        <div class="ctlTitle">Relay 2</div>
+        <div class="ctlSub">Temperature Safety</div>
+        <div class="ctlLine">
+          <span class="ctlState off" id="r2state">OFF</span>
+          <button type="button" class="sw" id="sw2" role="switch" aria-checked="false" aria-label="Relay 2 manual switch"><span class="knob"></span></button>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="note" id="ctlNote">
+      Switch to MANUAL to turn the relays on or off yourself. The switch sets your command;
+      the text beside it shows what the relay is really doing.
+      <strong>Safety override:</strong> a flame event always forces Relay 1 ON (10 s) and
+      temperature above 32°C always forces Relay 2 ON, even in MANUAL.
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+
+  <!-- ===== TEMPERATURE ===== -->
+  <div class="panel">
+    <h3>🌡️ Temperature Safety</h3>
+    <div class="big" id="tempLarge">--</div>
+    <div class="label">Alarm threshold: &gt; 32°C</div>
+
+    <div class="row">
+      <span>Temperature Alarm</span>
+      <span id="tempAlarm" class="off">OFF</span>
+    </div>
+    <div class="row">
+      <span>Relay 2</span>
+      <span id="relay2" class="off">OFF</span>
+    </div>
+  </div>
+
+  <!-- ===== RELAYS ===== -->
+  <div class="panel">
+    <h3>⚙️ Relay Status</h3>
+
+    <div class="row">
+      <span>Relay 1<br><small>Flame Safety</small></span>
+      <span id="relay1" class="off">OFF</span>
+    </div>
+    <div class="row">
+      <span>Relay 2<br><small>Temperature Safety</small></span>
+      <span id="relay2b" class="off">OFF</span>
+    </div>
+    <div class="row">
+      <span>Control Mode</span>
+      <span id="modeText" class="off">AUTO</span>
+    </div>
+  </div>
+
+  <!-- ===== BUZZERS ===== -->
+  <div class="panel">
+    <h3>🔊 Dual Buzzer Alarm</h3>
+
+    <div class="row">
+      <span>Buzzer 1<br><small>D7</small></span>
+      <span id="buzzer1" class="off">OFF</span>
+    </div>
+    <div class="row">
+      <span>Buzzer 2<br><small>D5</small></span>
+      <span id="buzzer2" class="off">OFF</span>
+    </div>
+    <div class="row">
+      <span>Active Alarm</span>
+      <span id="activeAlarm" class="off">NONE</span>
+    </div>
+  </div>
+
+  <!-- ===== RAW DATA ===== -->
+  <div class="panel full">
+    <h3>📊 Live Sensor Readings</h3>
+    <table>
+      <tr><td>DHT-22 Temperature</td><td id="rawTemp">--</td></tr>
+      <tr><td>DHT-22 Humidity</td><td id="rawHumidity">--</td></tr>
+      <tr><td>MQ-2 Raw Value</td><td id="rawMQ2">--</td></tr>
+      <tr><td>Flame Sensor DO</td><td id="rawFlame">--</td></tr>
+      <tr><td>PIR Sensor DO</td><td id="rawPIR">--</td></tr>
+      <tr><td>Wi-Fi Signal</td><td id="rssi">--</td></tr>
+      <tr><td>System Uptime</td><td id="uptime">--</td></tr>
+      <tr><td>Last Update</td><td id="lastUpdate">--</td></tr>
+    </table>
+  </div>
+
+  <!-- ===== PRIORITY ===== -->
+  <div class="panel full">
+    <h3>🚨 Alarm Priority System</h3>
+
+    <div class="priority">
+      <strong>1. 🔥 FLAME — HIGHEST PRIORITY</strong><br>
+      Both buzzers + Relay 1 for 10 seconds.
+    </div>
+    <div class="priority">
+      <strong>2. 🌡️ HIGH TEMPERATURE</strong><br>
+      Both buzzers for 10 seconds. Relay 2 remains ON while temperature is above 32°C.
+    </div>
+    <div class="priority">
+      <strong>3. 🚨 PIR MOTION</strong><br>
+      Both buzzers for 5 seconds.
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  ESP8266 Environmental &amp; Safety Monitoring System &nbsp;|&nbsp; Firebase Remote Monitoring
+</div>
+
+</div>
+
+
+<!-- ============================ JAVASCRIPT ============================ -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut }
+  from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { getDatabase, ref, onValue, update }
+  from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+
+/* ================================================================
+   1) PASTE YOUR FIREBASE WEB-APP CONFIG HERE
+      Firebase console > Project settings > General > Your apps > Web app
+      (This config is NOT a secret. Your database rules protect the data.)
+   ================================================================ */
+const firebaseConfig = {
+  apiKey:      "AIzaSyBZHWRHgXq-gcBIZFic7E85HK8ZZmDW0bw",
+  authDomain:  "environmental-safety-system.firebaseapp.com",
+  databaseURL: "https://environmental-safety-system-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:   "environmental-safety-system",
+  appId:       "1:206614919980:web:4151b6cd05debd72710a89"
+};
+
+/* ================================================================
+   2) TIMING
+   ================================================================ */
+const OFFLINE_AFTER_MS  = 20000;  // no new data from the ESP for this long = offline
+const FIRST_CHECK_MS    = 8000;   // after login, wait this long for a fresh update
+
+
+/* ================================================================
+   Helpers
+   ================================================================ */
+const $ = (id) => document.getElementById(id);
+
+function setText(id, text, cls) {
+  const el = $(id);
+  if (!el) return;
+  const t = String(text);
+  if (el.textContent !== t) el.textContent = t;
+  if (cls !== undefined && el.className !== cls) el.className = cls;
+}
+
+function setClass(id, cls) {
+  const el = $(id);
+  if (el && el.className !== cls) el.className = cls;
+}
+
+const num = (v) => (typeof v === "number" && isFinite(v)) ? v : null;
+
+let toastTimer = null;
+function toast(msg, isErr) {
+  const el = $("toast");
+  el.textContent = msg;
+  el.className = isErr ? "toast err" : "toast";
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.textContent = ""; }, 4000);
+}
+
+
+/* ================================================================
+   State
+   ================================================================ */
+let sensors = {};
+let control = { mode: "auto", relay1Cmd: false, relay2Cmd: false };
+
+let signedIn       = false;
+let cloudConnected = true;     // browser <-> Firebase
+let permissionErr  = false;
+
+let firstSnapshotAt = 0;       // when the first /sensors snapshot arrived
+let lastUptime      = null;
+let lastBeatAt      = 0;       // when /sensors last CHANGED (= ESP heartbeat)
+let haveBeat        = false;
+
+let unsubs = [];
+
+
+/* ================================================================
+   Device online / offline
+   ================================================================ */
+function deviceState() {
+  if (!signedIn)        return "none";
+  if (permissionErr)    return "denied";
+  if (!cloudConnected)  return "cloud";
+
+  const now = Date.now();
+
+  if (haveBeat) return (now - lastBeatAt <= OFFLINE_AFTER_MS) ? "online" : "offline";
+
+  if (!firstSnapshotAt) return "checking";
+  return (now - firstSnapshotAt <= FIRST_CHECK_MS) ? "checking" : "offline";
+}
+
+function ago(ms) {
+  const s = Math.max(0, Math.round(ms / 1000));
+  if (s < 60)   return s + " s ago";
+  if (s < 3600) return Math.floor(s / 60) + " min ago";
+  return Math.floor(s / 3600) + " h ago";
+}
+
+
+/* ================================================================
+   Render: sensors
+   ================================================================ */
+function renderSensors() {
+  const d = sensors || {};
+  const state = deviceState();
+
+  // ---------- connection pill ----------
+  const pill = {
+    online:   ["ESP8266 Online",             "dot ok"],
+    checking: ["Checking device…",           "dot warn"],
+    offline:  ["ESP8266 Offline",            "dot bad"],
+    cloud:    ["Cloud disconnected",         "dot warn"],
+    denied:   ["No permission (check rules)","dot bad"],
+    none:     ["Signed out",                 "dot"]
+  }[state];
+  setText("wifiText", pill[0]);
+  setClass("wifiDot", pill[1]);
+
+  $("main").classList.toggle("stale", state !== "online");
+
+  // ---------- temperature ----------
+  const t = num(d.temperature);
+  const temp = t === null ? "--" : t.toFixed(1) + " °C";
+  setText("temperature", temp);
+  setText("tempLarge", temp);
+  setText("rawTemp", temp);
+
+  if (d.highTemperature) setText("tempStatus", "HIGH TEMP", "status statusWarning");
+  else                   setText("tempStatus", "NORMAL",    "status");
+
+  // ---------- humidity ----------
+  const h = num(d.humidity);
+  const hum = h === null ? "--" : h.toFixed(1) + " %";
+  setText("humidity", hum);
+  setText("rawHumidity", hum);
+
+  // ---------- MQ-2 ----------
+  const mq = num(d.mq2);
+  setText("mq2", mq === null ? "--" : mq);
+  setText("rawMQ2", mq === null ? "--" : mq);
+
+  if (d.mq2Alert) setText("mqStatus", "GAS / SMOKE ALERT", "status statusAlert");
+  else            setText("mqStatus", "SAFE",              "status");
+
+  // ---------- flame ----------
+  if (d.flame) {
+    setText("flame", "DETECTED", "value alert");
+    setText("flameStatus", "EMERGENCY", "status statusAlert");
+    setText("rawFlame", "LOW - FLAME DETECTED");
+  } else {
+    setText("flame", "NOT DETECTED", "value");
+    setText("flameStatus", "SAFE", "status");
+    setText("rawFlame", "HIGH - NO FLAME");
+  }
+
+  // ---------- PIR ----------
+  if (d.pir) {
+    setText("pir", "MOTION", "value alert");
+    setText("pirStatus", "INTRUDER ALERT", "status statusAlert");
+    setText("rawPIR", "HIGH - MOTION");
+  } else {
+    setText("pir", "NO MOTION", "value");
+    setText("pirStatus", "CLEAR", "status");
+    setText("rawPIR", "LOW - NO MOTION");
+  }
+
+  // ---------- relays (actual state + reason) ----------
+  const r1 = relayText(1);
+  const r2 = relayText(2);
+  setText("relay1",  r1.text, r1.cls);
+  setText("relay2",  r2.text, r2.cls);
+  setText("relay2b", r2.text, r2.cls);
+
+  // ---------- temperature alarm ----------
+  if (d.temperatureAlarm) setText("tempAlarm", "ON - 10 SEC", "warning");
+  else                    setText("tempAlarm", "OFF", "off");
+
+  // ---------- buzzers ----------
+  const bz = d.buzzer ? ["ON", "on"] : ["OFF", "off"];
+  setText("buzzer1", bz[0], bz[1]);
+  setText("buzzer2", bz[0], bz[1]);
+
+  // ---------- active alarm ----------
+  if (d.flameAlarm)            setText("activeAlarm", "🔥 FLAME",       "alert");
+  else if (d.temperatureAlarm) setText("activeAlarm", "🌡️ TEMPERATURE", "warning");
+  else if (d.pirAlarm)         setText("activeAlarm", "🚨 PIR",         "alert");
+  else                         setText("activeAlarm", "NONE",          "off");
+
+  // ---------- RSSI / uptime ----------
+  const rssi = num(d.rssi);
+  setText("rssi", rssi === null ? "--" : rssi + " dBm");
+
+  const up = num(d.uptime);
+  if (up === null) setText("uptime", "--");
+  else setText("uptime", Math.floor(up / 3600) + "h " + Math.floor((up % 3600) / 60) + "m " + (up % 60) + "s");
+
+  setText("lastUpdate", haveBeat ? ago(Date.now() - lastBeatAt) : "--");
+
+  renderBanner(state);
+}
+
+// Actual relay text. n = 1 or 2
+function relayText(n) {
+  const d = sensors || {};
+  const on     = !!d["relay" + n];
+  const forced = !!d["relay" + n + "Forced"];
+  const manual = control.mode === "manual" && !!control["relay" + n + "Cmd"];
+
+  if (!on)    return { text: "OFF", cls: "off" };
+  if (forced) return { text: n === 1 ? "ON - FLAME OVERRIDE" : "ON - HIGH TEMP", cls: "on" };
+  if (manual) return { text: "ON - MANUAL", cls: "on" };
+  return { text: "ON", cls: "on" };
+}
+
+function renderBanner(state) {
+  const d = sensors || {};
+  const b = $("banner");
+
+  if (state === "offline" || state === "cloud" || state === "denied" || state === "checking") {
+    b.className = "systemBanner offline";
+    if (state === "checking") {
+      setText("systemTitle", "⏳ CHECKING DEVICE");
+      setText("systemText", "Waiting for a fresh update from the ESP8266…");
+    } else if (state === "cloud") {
+      setText("systemTitle", "☁️ CLOUD DISCONNECTED");
+      setText("systemText", "This page lost its connection to Firebase. Check your internet.");
+    } else if (state === "denied") {
+      setText("systemTitle", "🔒 NO PERMISSION");
+      setText("systemText", "Firebase refused access. Check the database rules and that this account's UID is listed.");
+    } else {
+      setText("systemTitle", "⚠️ ESP8266 OFFLINE");
+      setText("systemText",
+        (haveBeat ? "No update for " + ago(Date.now() - lastBeatAt).replace(" ago", "") + ". " : "No live data. ") +
+        "Showing the last known readings. Alarms and relays still run on the device itself.");
+    }
+    return;
+  }
+
+  if (d.flameAlarm) {
+    b.className = "systemBanner alarm";
+    setText("systemTitle", "🔥 FLAME EMERGENCY");
+    setText("systemText", "Flame detected. Emergency alarm and Flame Safety Relay are active.");
+  } else if (d.highTemperature) {
+    b.className = "systemBanner alarm";
+    setText("systemTitle", "🌡️ HIGH TEMPERATURE ALERT");
+    setText("systemText", "Temperature is above 32°C. Relay 2 remains ON.");
+  } else if (d.pirAlarm) {
+    b.className = "systemBanner alarm";
+    setText("systemTitle", "🚨 INTRUDER / MOTION ALERT");
+    setText("systemText", "PIR detected movement. Security alarm active.");
+  } else if (d.mq2Alert) {
+    b.className = "systemBanner alarm";
+    setText("systemTitle", "☁️ GAS / SMOKE ALERT");
+    setText("systemText", "MQ-2 value is above the configured threshold.");
+  } else {
+    b.className = "systemBanner";
+    setText("systemTitle", "✅ SYSTEM SAFE");
+    setText("systemText", "All monitored parameters are within normal conditions.");
+  }
+}
+
+
+/* ================================================================
+   Render: control panel
+   ================================================================ */
+function canControl() {
+  return deviceState() === "online";
+}
+
+function renderControl() {
+  const manual = control.mode === "manual";
+  const ok = canControl();
+
+  $("modeAuto").setAttribute("aria-pressed", String(!manual));
+  $("modeManual").setAttribute("aria-pressed", String(manual));
+  $("modeAuto").disabled = !ok;
+  $("modeManual").disabled = !ok;
+
+  setText("modeText", manual ? "MANUAL" : "AUTO", manual ? "warning" : "off");
+  setText("modeHint", manual
+    ? "MANUAL: you control the relays. Safety override still applies."
+    : "AUTO: relays run by the safety logic.");
+
+  [1, 2].forEach((n) => {
+    const cmd = !!control["relay" + n + "Cmd"];
+    const sw = $("sw" + n);
+    sw.setAttribute("aria-checked", String(cmd));
+    sw.disabled = !(ok && manual);
+
+    // actual state beside the switch
+    const r = relayText(n);
+    const on = !!(sensors || {})["relay" + n];
+    const forced = !!(sensors || {})["relay" + n + "Forced"];
+    const pending = ok && manual && !forced && cmd !== on;
+
+    if (pending) setText("r" + n + "state", "Applying…", "ctlState warning");
+    else         setText("r" + n + "state", r.text, "ctlState " + r.cls);
+  });
+}
+
+function renderAll() {
+  renderSensors();
+  renderControl();
+}
+
+
+/* ================================================================
+   Send commands
+   ================================================================ */
+let db = null;
+
+async function sendControl(patch) {
+  if (!db || !canControl()) {
+    toast("Device is offline - command not sent.", true);
+    return;
+  }
+  try {
+    await update(ref(db, "control"), patch);
+    toast("Command sent.");
+  } catch (e) {
+    toast("Command failed: " + (e && e.message ? e.message : e), true);
+  }
+}
+
+$("modeAuto").addEventListener("click", () => {
+  if (control.mode === "auto") return;
+  sendControl({ mode: "auto", relay1Cmd: false, relay2Cmd: false });
+});
+
+$("modeManual").addEventListener("click", () => {
+  if (control.mode === "manual") return;
+  // Start MANUAL with both relays OFF so nothing switches on by surprise
+  sendControl({ mode: "manual", relay1Cmd: false, relay2Cmd: false });
+});
+
+$("sw1").addEventListener("click", () => {
+  if (control.mode !== "manual") return;
+  sendControl({ relay1Cmd: !control.relay1Cmd });
+});
+
+$("sw2").addEventListener("click", () => {
+  if (control.mode !== "manual") return;
+  sendControl({ relay2Cmd: !control.relay2Cmd });
+});
+
+
+/* ================================================================
+   Firebase start-up
+   ================================================================ */
+const configMissing = String(firebaseConfig.apiKey).startsWith("YOUR_");
+
+function showLogin(show, msg) {
+  const o = $("loginOverlay");
+  o.hidden = !show;
+  o.classList.remove("checking");
+  if (msg !== undefined) $("loginErr").textContent = msg;
+}
+
+function stopListening() {
+  unsubs.forEach((u) => { try { u(); } catch (e) {} });
+  unsubs = [];
+}
+
+function startListening() {
+  stopListening();
+
+  sensors = {};
+  control = { mode: "auto", relay1Cmd: false, relay2Cmd: false };
+  firstSnapshotAt = 0; lastUptime = null; lastBeatAt = 0; haveBeat = false;
+  permissionErr = false;
+
+  const onErr = (e) => {
+    permissionErr = !!(e && /permission/i.test(String(e.code || e.message)));
+    renderAll();
+  };
+
+  unsubs.push(onValue(ref(db, "sensors"), (snap) => {
+    const v = snap.val() || {};
+    sensors = v;
+    permissionErr = false;
+
+    const now = Date.now();
+    if (!firstSnapshotAt) firstSnapshotAt = now;
+
+    // ESP writes a new "uptime" every upload -> a change means the device is alive
+    const up = num(v.uptime);
+    if (up !== null && up !== lastUptime) {
+      if (lastUptime !== null) { haveBeat = true; lastBeatAt = now; }
+      lastUptime = up;
+    }
+    renderAll();
+  }, onErr));
+
+  unsubs.push(onValue(ref(db, "control"), (snap) => {
+    const v = snap.val() || {};
+    control = {
+      mode: v.mode === "manual" ? "manual" : "auto",
+      relay1Cmd: v.relay1Cmd === true,
+      relay2Cmd: v.relay2Cmd === true
+    };
+    renderAll();
+  }, onErr));
+
+  unsubs.push(onValue(ref(db, ".info/connected"), (snap) => {
+    cloudConnected = snap.val() === true;
+    renderAll();
+  }));
+}
+
+if (configMissing) {
+  showLogin(true, "Firebase config is not filled in yet. Open index.html and paste your config.");
+  $("loginBtn").disabled = true;
+} else {
+  const app  = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  db = getDatabase(app);
+
+  onAuthStateChanged(auth, (user) => {
+    signedIn = !!user;
+    if (user) {
+      $("userEmail").textContent = user.email || "";
+      showLogin(false, "");
+      startListening();
+    } else {
+      stopListening();
+      $("userEmail").textContent = "";
+      sensors = {};
+      showLogin(true);
+    }
+    renderAll();
+  });
+
+  $("loginForm").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    $("loginErr").textContent = "";
+    $("loginBtn").disabled = true;
+    try {
+      await signInWithEmailAndPassword(auth, $("email").value.trim(), $("password").value);
+      $("password").value = "";
+    } catch (e) {
+      const code = String((e && e.code) || "");
+      $("loginErr").textContent =
+        /invalid-credential|wrong-password|user-not-found|invalid-email/.test(code)
+          ? "Wrong email or password."
+          : /too-many-requests/.test(code)
+            ? "Too many attempts. Wait a few minutes and try again."
+            : /network/.test(code)
+              ? "Network problem. Check your internet."
+              : "Sign-in failed (" + code + ").";
+    } finally {
+      $("loginBtn").disabled = false;
+    }
+  });
+
+  $("signOutBtn").addEventListener("click", () => signOut(auth));
+}
+
+// Re-evaluate online/offline and "x s ago" once a second
+setInterval(renderAll, 1000);
+renderAll();
+</script>
+
+</body>
+</html>
